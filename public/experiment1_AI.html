@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Water Jug Solver | Pro Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Brand Colors */
+            --primary: #2563eb;       /* Royal Blue */
+            --primary-dark: #1e40af;
+            --secondary: #06b6d4;     /* Cyan */
+            --accent: #7c3aed;        /* Violet */
+            
+            /* UI Colors */
+            --bg-body: #f8fafc;
+            --glass-panel: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            
+            /* Status Colors */
+            --success: #10b981;
+            --error: #ef4444;
+            
+            /* Liquid */
+            --water-color: #3b82f6;
+            --water-surface: #93c5fd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.05) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-main);
+        }
+
+        /* --- Navbar --- */
+        nav {
+            width: 100%;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+
+        /* --- Cards & Panels --- */
+        .panel {
+            background: var(--glass-panel);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 10px 15px -3px rgba(0, 0, 0, 0.05),
+                inset 0 0 20px rgba(255,255,255,0.5);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .panel:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Controls Section --- */
+        .controls { padding: 2rem; }
+        .controls h2 { font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--text-main); }
+
+        .input-wrapper { position: relative; margin-bottom: 1.5rem; }
+        
+        .input-wrapper label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #fff; /* Masking the line */
+            padding: 0 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            border-radius: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: white;
+            transition: all 0.2s;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:active { transform: scale(0.96); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4); transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: var(--text-muted);
+        }
+        .btn-secondary:hover { border-color: #cbd5e1; color: var(--text-main); background: #f8fafc; }
+
+        .btn-ghost {
+            grid-column: 1 / -1;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--accent);
+            margin-top: 1rem;
+        }
+        .btn-ghost:hover { background: rgba(124, 58, 237, 0.15); }
+
+        /* --- Visualizer Stage --- */
+        .stage-container {
+            grid-column: 2;
+            grid-row: 1;
+            height: 420px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4rem;
+            padding-bottom: 3rem;
+            position: relative;
+        }
+
+        .jug-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 140px;
+        }
+
+        .jug-cap-label {
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .jug {
+            width: 100%;
+            height: 280px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid #cbd5e1;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.8), 0 10px 20px rgba(0,0,0,0.05);
+            /* Glass effect */
+            backdrop-filter: blur(2px);
+        }
+        
+        /* Measurement Lines for realism */
+        .jug::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 10px;
+            border-right: 2px dashed rgba(0,0,0,0.1);
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, var(--primary), var(--water-color));
+            transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0.9;
+        }
+
+        /* Wave Animation on surface */
+        .water::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: var(--water-surface);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: wave 2s infinite ease-in-out;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.7); }
+        }
+
+        /* Bubbles */
+        .water::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px);
+            background-size: 15px 15px;
+            bottom: 0;
+        }
+
+        .jug-val {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            z-index: 10;
+            text-shadow: 0 2px 10px rgba(255,255,255,1);
+        }
+
+        .jug-name {
+            margin-top: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Timeline Log --- */
+        .log-container {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .log-header h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+
+        .steps-wrapper {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .step-card:hover { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .step-card.active {
+            opacity: 1;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15);
+            background: #fff;
+        }
+
+        .step-card.success-step { border-left: 5px solid var(--success); background: #f0fdf4; }
+
+        .icon-box {
+            width: 40px; height: 40px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        
+        .active .icon-box { background: var(--primary); color: white; }
+        .success-step .icon-box { background: var(--success); color: white; }
+
+        .step-text { flex: 1; }
+        .step-action { font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
+        .step-details { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+        .step-details span { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
+
+        /* --- Modal --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0; top: 0;
+            width: 100%; height: 100%; 
+            background-color: rgba(15, 23, 42, 0.4); 
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5vh auto;
+            width: 90%; max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: slideUp 0.4s ease;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 2rem; overflow-y: auto; }
+        .close-btn { font-size: 1.5rem; cursor: pointer; color: #94a3b8; transition: color 0.2s; }
+        .close-btn:hover { color: var(--error); }
+
+        .explain-block { margin-bottom: 2rem; }
+        .explain-block h4 { color: var(--primary); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .explain-block p { line-height: 1.6; color: var(--text-muted); font-size: 0.95rem; }
+        .math-highlight { background: #f8fafc; padding: 10px; border-radius: 8px; border-left: 3px solid var(--accent); font-family: monospace; color: var(--text-main); margin: 10px 0; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            background: white;
+        }
+
+        /* --- Status Messages --- */
+        .status-msg {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+        .status-error { background: #fee2e2; color: #b91c1c; }
+        .status-success { background: #dcfce7; color: #15803d; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        svg { width: 20px; height: 20px; fill: currentColor; }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <svg viewBox="0 0 24 24" style="fill:url(#grad1); width:28px; height:28px;">
+                <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:var(--primary);stop-opacity:1" /><stop offset="100%" style="stop-color:var(--secondary);stop-opacity:1" /></linearGradient></defs>
+                <path d="M12 2.05c-.32 0-.6.2-.71.5L5.7 12.63c-1.12 2.36-.64 5.21 1.25 7.15C8.36 21.2 10.16 22 12 22s3.64-.8 5.05-2.22c1.89-1.93 2.37-4.79 1.25-7.15L12.71 2.55c-.11-.3-.39-.5-.71-.5z"/>
+            </svg>
+            WaterSolver AI
+        </div>
+        <div>
+            </div>
+    </nav>
+
+    <div class="main-container">
+        
+        <div class="panel controls">
+            <h2>Configuration</h2>
+            
+            <div class="input-wrapper">
+                <label>Jug A Capacity (L)</label>
+                <input type="number" id="capA" value="4" min="1" max="100">
+            </div>
+
+            <div class="input-wrapper">
+                <label>Jug B Capacity (L)</label>
+                <input type="number" id="capB" value="3" min="1" max="100">
+            </div>
+
+            <div class="input-wrapper">
+                <label>Target Amount (L)</label>
+                <input type="number" id="target" value="2" min="1" max="100">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-secondary" onclick="resetSim()">
+                    <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    Reset
+                </button>
+                <button class="btn-primary" onclick="startSolver()">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    Simulate
+                </button>
+                <button class="btn-ghost" onclick="openExplanation()">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                    Explain Logic
+                </button>
+            </div>
+
+            <div id="statusMsg" class="status-msg"></div>
+        </div>
+
+        <div class="panel stage-container">
+            <div class="jug-wrapper">
+                <div class="jug-cap-label">Max: <span id="labelCapA">4</span>L</div>
+                <div class="jug">
+                    <div class="water" id="waterA"></div>
+                    <div class="jug-val"><span id="valA">0</span>L</div>
+                </div>
+                <div class="jug-name">Jug A</div>
+            </div>
+
+            <div class="jug-wrapper">
+                <div class="jug-cap-label">Max: <span id="labelCapB">3</span>L</div>
+                <div class="jug">
+                    <div class="water" id="waterB"></div>
+                    <div class="jug-val"><span id="valB">0</span>L</div>
+                </div>
+                <div class="jug-name">Jug B</div>
+            </div>
+        </div>
+
+        <div class="panel log-container">
+            <div class="log-header">
+                <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                <h3>Algorithm Steps</h3>
+            </div>
+            <div id="stepsWrapper" class="steps-wrapper">
+                <div class="step-card">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
+                    </div>
+                    <div class="step-text">
+                        <div class="step-action">Ready to Simulate</div>
+                        <div class="step-details">Waiting for input...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        &copy; 2024 AI Water Jug Solver. Powered by BFS Algorithm & Glassmorphism UI.
+    </footer>
+
+    <div id="explainModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Algorithm Breakdown</h2>
+                <div class="close-btn" onclick="closeExplanation()">&times;</div>
+            </div>
+            <div class="modal-body" id="explainContent">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & ICONS ---
+        const ICONS = {
+            start: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>`,
+            fill: `<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>`, 
+            empty: `<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>`,
+            pour: `<svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>`,
+            success: `<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>`
+        };
+
+        function getIconForAction(action) {
+            if (action.includes("Fill")) return ICONS.fill;
+            if (action.includes("Empty")) return ICONS.empty;
+            if (action.includes("Pour")) return ICONS.pour;
+            return ICONS.start;
+        }
+
+        // --- CORE ALGORITHM (BFS) - UNCHANGED LOGIC ---
+        function gcd(a, b) {
+            if (!b) return a;
+            return gcd(b, a % b);
+        }
+
+        function solveWaterJug(capA, capB, target) {
+            if (target > Math.max(capA, capB)) return null;
+            if (target % gcd(capA, capB) !== 0) return null;
+
+            let queue = [];
+            let visited = new Set();
+            let initialState = { a: 0, b: 0, action: "Start", parent: null };
+            
+            queue.push(initialState);
+            visited.add(`0,0`);
+
+            while (queue.length > 0) {
+                let curr = queue.shift();
+
+                if (curr.a === target || curr.b === target) {
+                    return reconstructPath(curr);
+                }
+
+                let nextStates = [
+                    { a: capA, b: curr.b, action: "Fill Jug A" },
+                    { a: curr.a, b: capB, action: "Fill Jug B" },
+                    { a: 0, b: curr.b, action: "Empty Jug A" },
+                    { a: curr.a, b: 0, action: "Empty Jug B" },
+                    { a: curr.a - Math.min(curr.a, capB - curr.b), b: curr.b + Math.min(curr.a, capB - curr.b), action: "Pour A into B" },
+                    { a: curr.a + Math.min(curr.b, capA - curr.a), b: curr.b - Math.min(curr.b, capA - curr.a), action: "Pour B into A" }
+                ];
+
+                for (let state of nextStates) {
+                    let key = `${state.a},${state.b}`;
+                    if (!visited.has(key)) {
+                        visited.add(key);
+                        queue.push({ ...state, parent: curr });
+                    }
+                }
+            }
+            return null;
+        }
+
+        function reconstructPath(node) {
+            let path = [];
+            while (node) {
+                path.unshift(node);
+                node = node.parent;
+            }
+            return path;
+        }
+
+        // --- UI INTERACTION ---
+        const waterA = document.getElementById('waterA');
+        const waterB = document.getElementById('waterB');
+        const valA = document.getElementById('valA');
+        const valB = document.getElementById('valB');
+        const stepsWrapper = document.getElementById('stepsWrapper');
+        const statusMsg = document.getElementById('statusMsg');
+        const modal = document.getElementById('explainModal');
+        const explainContent = document.getElementById('explainContent');
+
+        function updateVisuals(a, b, maxA, maxB) {
+            const pctA = (a / maxA) * 100;
+            const pctB = (b / maxB) * 100;
+            waterA.style.height = `${pctA}%`;
+            waterB.style.height = `${pctB}%`;
+            valA.innerText = a;
+            valB.innerText = b;
+        }
+
+        function createStepCard(step, index, isSuccess = false) {
+            const div = document.createElement('div');
+            div.className = `step-card ${isSuccess ? 'success-step' : ''}`;
+            div.id = `step-${index}`;
+            div.innerHTML = `
+                <div class="icon-box">${isSuccess ? ICONS.success : getIconForAction(step.action)}</div>
+                <div class="step-text">
+                    <div class="step-action">${index}. ${step.action}</div>
+                    <div class="step-details">
+                        <span>Jug A: ${step.a}L</span> <span>Jug B: ${step.b}L</span>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function resetSim() {
+            waterA.style.height = '0%';
+            waterB.style.height = '0%';
+            valA.innerText = '0';
+            valB.innerText = '0';
+            stepsWrapper.innerHTML = `
+                <div class="step-card">
+                    <div class="icon-box">${ICONS.start}</div>
+                    <div class="step-text">
+                        <div class="step-action">Ready to Simulate</div>
+                        <div class="step-details">Awaiting input...</div>
+                    </div>
+                </div>`;
+            statusMsg.style.display = 'none';
+        }
+
+        async function startSolver() {
+            const capA = parseInt(document.getElementById('capA').value);
+            const capB = parseInt(document.getElementById('capB').value);
+            const target = parseInt(document.getElementById('target').value);
+
+            document.getElementById('labelCapA').innerText = capA;
+            document.getElementById('labelCapB').innerText = capB;
+
+            resetSim();
+            statusMsg.style.display = 'none';
+
+            const solutionPath = solveWaterJug(capA, capB, target);
+
+            if (!solutionPath) {
+                statusMsg.className = "status-msg status-error";
+                statusMsg.innerText = "Target unreachable (GCD check failed).";
+                statusMsg.style.display = 'block';
+                return;
+            }
+
+            statusMsg.className = "status-msg status-success";
+            statusMsg.innerText = `Success! Solved in ${solutionPath.length - 1} moves.`;
+            statusMsg.style.display = 'block';
+
+            stepsWrapper.innerHTML = '';
+            solutionPath.forEach((step, index) => {
+                const isLast = index === solutionPath.length - 1;
+                stepsWrapper.appendChild(createStepCard(step, index, isLast));
+            });
+
+            for (let i = 0; i < solutionPath.length; i++) {
+                const step = solutionPath[i];
+                const card = document.getElementById(`step-${i}`);
+                
+                // Reset previous actives
+                document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+                
+                // Activate current
+                card.classList.add('active');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Animate Water
+                updateVisuals(step.a, step.b, capA, capB);
+                
+                await new Promise(r => setTimeout(r, 1200));
+            }
+        }
+
+        // --- EXPLAIN FEATURE ---
+        function openExplanation() {
+            const capA = parseInt(document.getElementById('capA').value);
+            const capB = parseInt(document.getElementById('capB').value);
+            const target = parseInt(document.getElementById('target').value);
+            const commonDiv = gcd(capA, capB);
+
+            let html = `
+                <div class="explain-block">
+                    <h4>1. Mathematical Validation (GCD)</h4>
+                    <p>We use <strong>Bézout's identity</strong> to check if the solution exists. The target must be a multiple of the Greatest Common Divisor (GCD) of both jug capacities.</p>
+                    <div class="math-highlight">GCD(${capA}, ${capB}) = ${commonDiv}</div>
+                    <p>${target % commonDiv === 0 
+                        ? `<span style="color:var(--success)">Since ${target} is divisible by ${commonDiv}, the problem is solvable.</span>` 
+                        : `<span style="color:var(--error)">Since ${target} is not divisible by ${commonDiv}, this is impossible.</span>`}
+                    </p>
+                </div>
+
+                <div class="explain-block">
+                    <h4>2. Breadth-First Search (BFS)</h4>
+                    <p>The AI treats this as a graph problem where every "State" is a node (Jug A Amount, Jug B Amount). It explores every possible move (Fill, Empty, Pour) layer-by-layer to find the shortest path.</p>
+                </div>
+            `;
+
+            explainContent.innerHTML = html;
+            modal.style.display = "block";
+        }
+
+        function closeExplanation() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeExplanation();
+            }
+        }
+    </script>
+</body>
+</html>

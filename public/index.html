@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM IST | Intelligent Systems Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Enterprise Color Palette */
+            --brand-primary: #2563eb;
+            --brand-dark: #0f172a;
+            --surface-light: #ffffff;
+            --surface-offset: #f8fafc;
+            --text-heading: #1e293b;
+            --text-body: #64748b;
+            --border-color: #e2e8f0;
+            --focus-ring: rgba(37, 99, 235, 0.25);
+            
+            /* Animation Curves */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            overflow: hidden;
+            background: var(--surface-light);
+        }
+
+        /* --- LEFT SIDE: IMMERSIVE BRANDING --- */
+        .brand-section {
+            flex: 1;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Abstract Pattern Overlay */
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(255,255,255,0.1) 0%, transparent 40%),
+                radial-gradient(at 90% 90%, rgba(37,99,235,0.3) 0%, transparent 40%);
+            z-index: 1;
+        }
+
+        #neural-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .brand-content { position: relative; z-index: 10; }
+        
+        .logo-mark {
+            display: flex; align-items: center; gap: 12px;
+            font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px;
+        }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .headline-wrapper { margin-top: auto; margin-bottom: 40px; }
+        .headline-wrapper h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .headline-wrapper p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            max-width: 80%;
+        }
+
+        /* --- RIGHT SIDE: FORM --- */
+        .form-section {
+            width: 50%;
+            max-width: 600px;
+            background: var(--surface-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px;
+            position: relative;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .welcome-header { margin-bottom: 40px; }
+        .welcome-header h2 { font-size: 2rem; color: var(--text-heading); font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .welcome-header p { color: var(--text-body); font-size: 1rem; }
+
+        /* Segmented Toggle */
+        .toggle-container {
+            background: var(--surface-offset);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        .toggle-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-body);
+            cursor: pointer;
+            z-index: 2;
+            transition: color 0.3s;
+        }
+        .toggle-btn.active { color: var(--text-heading); }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 4px; left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.3s var(--ease-out);
+            z-index: 1;
+        }
+
+        /* Modern Input Fields */
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+        }
+        
+        .field-wrapper { position: relative; }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            font-size: 0.95rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-heading);
+            background: var(--surface-light);
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 16px; top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            transition: 0.2s;
+        }
+        .form-input:focus + .field-icon { color: var(--brand-primary); }
+
+        /* Button */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--brand-dark);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .submit-btn:hover {
+            background: var(--brand-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Footer / Links */
+        .form-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        .link { color: var(--text-body); text-decoration: none; cursor: pointer; transition: 0.2s; }
+        .link:hover { color: var(--brand-primary); }
+        .link-primary { color: var(--brand-primary); font-weight: 600; cursor: pointer; }
+        .link-primary:hover { text-decoration: underline; }
+
+        /* Alerts */
+        .alert-banner {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-error { background: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; }
+        .alert-success { background: #f0fdf4; border: 1px solid #dcfce7; color: #16a34a; }
+
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .brand-section { display: none; }
+            .form-section { width: 100%; max-width: 100%; padding: 40px; background: #f8fafc; }
+            .form-container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="brand-section">
+        <canvas id="neural-canvas"></canvas>
+        <div class="brand-content">
+            <div class="logo-mark">
+                <div class="logo-icon"><i class="fa-solid fa-brain"></i></div>
+                <span>SRM IST // COMPUTING</span>
+            </div>
+        </div>
+        <div class="brand-content headline-wrapper">
+            <h1>Accelerating<br>Intelligence.</h1>
+            <p>Welcome to the 21AIC202J Intelligent Systems Portal. Secure access for faculty and student researchers.</p>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-container">
+            <div class="welcome-header">
+                <h2>Welcome back</h2>
+                <p>Please enter your credentials to access the workspace.</p>
+            </div>
+
+            <div id="errorAlert" class="alert-banner alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="errorText">Error message</span>
+            </div>
+            <div id="successAlert" class="alert-banner alert-success">
+                <i class="fa-solid fa-check-circle"></i>
+                <span id="successText">Success message</span>
+            </div>
+
+            <div class="toggle-container">
+                <div class="toggle-slider" id="toggleSlider"></div>
+                <div class="toggle-btn active" onclick="setRole(this, 'student')">Student</div>
+                <div class="toggle-btn" onclick="setRole(this, 'faculty')">Faculty</div>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label class="input-label">Email Address</label>
+                    <div class="field-wrapper">
+                        <input type="email" id="email" class="form-input" placeholder="student@srmist.edu.in" required>
+                        <i class="fa-regular fa-envelope field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <div class="field-wrapper">
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                        <i class="fa-solid fa-lock field-icon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span id="btnText">Sign In to Workspace</span>
+                    <div class="spinner" id="spinner"></div>
+                </button>
+
+                <div class="form-footer">
+                    <span class="link" onclick="handleReset()">Forgot Password?</span>
+                    <span class="link-primary" onclick="handleSignUp()">Create Account</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNkQZetFlbIUjj_FkFsYvjOrq4BgpMKLw",
+            authDomain: "yashdiary.firebaseapp.com",
+            projectId: "yashdiary",
+            storageBucket: "yashdiary.firebasestorage.app",
+            messagingSenderId: "278671330274",
+            appId: "1:278671330274:web:6529cc25d2665baa7607bb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // UI LOGIC
+        window.setRole = (el, role) => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            // Add to clicked
+            el.classList.add('active');
+            
+            // Move Slider
+            const slider = document.getElementById('toggleSlider');
+            if(role === 'faculty') {
+                slider.style.transform = 'translateX(100%)';
+            } else {
+                slider.style.transform = 'translateX(0)';
+            }
+        }
+
+        const setLoading = (isLoading, text) => {
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+            
+            if(isLoading) {
+                btn.disabled = true;
+                spinner.style.display = 'block';
+                btnText.style.display = 'none';
+            } else {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.style.display = 'block';
+                btnText.innerText = text || "Sign In to Workspace";
+            }
+        }
+
+        const showAlert = (type, msg) => {
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('successAlert').style.display = 'none';
+            
+            if(type === 'error') {
+                const el = document.getElementById('errorAlert');
+                document.getElementById('errorText').innerText = msg;
+                el.style.display = 'flex';
+            } else {
+                const el = document.getElementById('successAlert');
+                document.getElementById('successText').innerText = msg;
+                el.style.display = 'flex';
+            }
+        }
+
+        // AUTH FUNCTIONS
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            setLoading(true);
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showAlert('success', 'Authentication successful. Redirecting...');
+                setTimeout(() => window.location.href = "dashboard.html", 1000);
+            } catch (error) {
+                let msg = "Invalid email or password.";
+                if(error.code.includes('too-many-requests')) msg = "Too many attempts. Account locked temporarily.";
+                showAlert('error', msg);
+                setLoading(false);
+            }
+        }
+
+        window.handleSignUp = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if(!email || !password) { showAlert('error', 'Please fill in all fields.'); return; }
+            if(password.length < 6) { showAlert('error', 'Password must be at least 6 characters.'); return; }
+            
+            setLoading(true);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showAlert('success', 'Account created! Signing you in...');
+                setTimeout(() => window.location.href = "dashboard.html", 1000);
+            } catch (error) {
+                let msg = error.message;
+                if(error.code.includes('email-already-in-use')) msg = "That email is already in use.";
+                showAlert('error', msg);
+                setLoading(false);
+            }
+        }
+
+        window.handleReset = async () => {
+            const email = document.getElementById('email').value;
+            if(!email) { showAlert('error', 'Please enter your email address first.'); return; }
+            
+            setLoading(true);
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showAlert('success', 'Password reset link sent to your email.');
+            } catch (error) {
+                showAlert('error', error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+    </script>
+
+    <script>
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+
+        // Dynamic Configuration
+        const config = {
+            count: 60,
+            dist: 120,
+            radius: 1.5,
+            color: 'rgba(255, 255, 255, 0.6)',
+            lineColor: 'rgba(255, 255, 255, 0.15)'
+        };
+
+        function resize() {
+            // Resize canvas to fit the LEFT panel only
+            const container = document.querySelector('.brand-section');
+            if(container) {
+                width = canvas.width = container.offsetWidth;
+                height = canvas.height = container.offsetHeight;
+            }
+        }
+        window.addEventListener('resize', resize);
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, config.radius, 0, Math.PI * 2);
+                ctx.fillStyle = config.color;
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            resize();
+            particles = [];
+            for (let i = 0; i < config.count; i++) particles.push(new Particle());
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const d = Math.sqrt((p.x - p2.x)**2 + (p.y - p2.y)**2);
+                    
+                    if (d < config.dist) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = config.lineColor;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize animation after DOM load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

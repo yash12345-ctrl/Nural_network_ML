@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Cortex | Advanced Lab</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. CORE VARIABLES (Layout & Animation) --- */
+        :root {
+            --sidebar-width: 280px;
+            --glass-blur: blur(20px);
+            --transition-speed: 0.3s;
+        }
+
+        /* --- 2. THEME DEFINITIONS --- */
+
+        /* THEME: CYBER (Default) */
+        [data-theme="cyber"] {
+            --bg-deep: #050507;
+            --bg-panel: #0a0a0f;
+            --primary: #00f2ff;       /* Cyan */
+            --secondary: #7000ff;     /* Violet */
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(10, 10, 15, 0.6);
+            --gradient-ai: linear-gradient(135deg, rgba(112, 0, 255, 0.9) 0%, rgba(0, 242, 255, 0.9) 100%);
+            --grid-color: rgba(0, 242, 255, 0.03);
+            --glow-color: rgba(0, 242, 255, 0.4);
+            --card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+        }
+
+        /* THEME: OBSIDIAN (Red/Black) */
+        [data-theme="obsidian"] {
+            --bg-deep: #000000;
+            --bg-panel: #0f0505;
+            --primary: #ff003c;       /* Crimson */
+            --secondary: #ff3e3e;     /* Red */
+            --text-main: #eeeeee;
+            --text-muted: #a16b6b;
+            --border-light: rgba(255, 0, 60, 0.2);
+            --glass-bg: rgba(20, 0, 5, 0.8);
+            --gradient-ai: linear-gradient(135deg, #8a0000 0%, #ff003c 100%);
+            --grid-color: rgba(255, 0, 60, 0.05);
+            --glow-color: rgba(255, 0, 60, 0.5);
+            --card-bg: linear-gradient(180deg, rgba(50, 0, 10, 0.3) 0%, rgba(20, 0, 0, 0.3) 100%);
+        }
+
+        /* THEME: BIOLAB (Green/Teal) */
+        [data-theme="biolab"] {
+            --bg-deep: #010a05;
+            --bg-panel: #02140a;
+            --primary: #00ff9d;       /* Toxic Green */
+            --secondary: #00ccff;     /* Teal */
+            --text-main: #e0fff4;
+            --text-muted: #5c8a7a;
+            --border-light: rgba(0, 255, 157, 0.15);
+            --glass-bg: rgba(2, 20, 10, 0.7);
+            --gradient-ai: linear-gradient(135deg, #008f58 0%, #00ff9d 100%);
+            --grid-color: rgba(0, 255, 157, 0.04);
+            --glow-color: rgba(0, 255, 157, 0.4);
+            --card-bg: linear-gradient(180deg, rgba(0, 255, 157, 0.05) 0%, rgba(0, 50, 20, 0.02) 100%);
+        }
+
+        /* THEME: NEXUS (Light/Corporate) */
+        [data-theme="nexus"] {
+            --bg-deep: #f0f2f5;
+            --bg-panel: #ffffff;
+            --primary: #2563eb;       /* Royal Blue */
+            --secondary: #4f46e5;     /* Indigo */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-light: rgba(0, 0, 0, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --gradient-ai: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+            --grid-color: rgba(37, 99, 235, 0.03);
+            --glow-color: rgba(37, 99, 235, 0.2);
+            --card-bg: #ffffff;
+        }
+
+        /* --- 3. GLOBAL RESET & BODY --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        /* --- 4. SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--border-light);
+            display: flex; flex-direction: column;
+            padding: 24px;
+            z-index: 50;
+            transition: all 0.5s ease;
+        }
+
+        .brand {
+            display: flex; align-items: center; gap: 14px;
+            padding-bottom: 24px; margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .brand-logo {
+            width: 42px; height: 42px;
+            background: var(--gradient-ai);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #fff;
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        .brand-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700; font-size: 1.6rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--text-main);
+        }
+
+        .nav-menu { list-style: none; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 16px;
+            padding: 14px 18px; border-radius: 8px;
+            color: var(--text-muted); text-decoration: none;
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1.05rem;
+            transition: all 0.3s;
+            border: 1px solid transparent; position: relative; overflow: hidden;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.03);
+            color: var(--text-main);
+            border-color: var(--border-light);
+        }
+        
+        .nav-item.active { border-color: var(--primary); color: var(--primary); }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: var(--primary); box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* --- 5. TOP BAR & THEME SWITCHER --- */
+        .main-content {
+            flex: 1; display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+        }
+
+        .top-bar {
+            padding: 20px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            z-index: 40;
+            transition: all 0.5s ease;
+        }
+
+        .page-header h1 {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 2.2rem;
+            color: var(--text-main);
+        }
+        .page-header p {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; color: var(--primary); margin-top: 4px; letter-spacing: 1px;
+        }
+
+        .header-controls {
+            display: flex; align-items: center; gap: 20px;
+        }
+
+        .search-container { position: relative; width: 300px; }
+        .search-input {
+            width: 100%; background: rgba(125,125,125,0.05);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 10px 15px 10px 40px; border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--glow-color); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* THEME SELECTOR STYLE */
+        .theme-wrapper { position: relative; }
+        
+        .theme-btn {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            background: var(--border-light);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .theme-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+        .theme-panel {
+            position: absolute; top: 55px; right: 0;
+            width: 220px;
+            background: var(--bg-panel);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column; gap: 8px;
+            z-index: 100;
+        }
+        .theme-panel.active { display: flex; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .theme-panel-title {
+            font-family: 'Rajdhani'; font-size: 0.8rem; color: var(--text-muted);
+            letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase;
+        }
+
+        .theme-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: rgba(125,125,125,0.05);
+            transition: 0.2s;
+        }
+        .theme-option:hover { background: rgba(125,125,125,0.1); }
+        .theme-option.selected { border-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
+
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .theme-name { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--text-main); }
+
+        /* --- 6. CARDS & GRID --- */
+        .scroll-area { flex: 1; overflow-y: auto; padding: 30px 40px 60px 40px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 30px; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 12px; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; transition: all 0.4s ease;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0; transition: 0.4s;
+        }
+        .card:hover { transform: translateY(-6px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card:hover::before { opacity: 1; }
+
+        .card-head { padding: 24px 24px 0 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+        
+        .icon-box {
+            width: 50px; height: 50px;
+            background: rgba(125,125,125,0.05);
+            border: 1px solid var(--border-light); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: var(--text-main); transition: 0.3s;
+        }
+        .card:hover .icon-box { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 15px var(--glow-color); }
+
+        .meta-tag {
+            font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--text-muted);
+            border: 1px solid var(--border-light); padding: 4px 8px; border-radius: 4px;
+        }
+
+        .card-body { padding: 20px 24px; flex: 1; }
+        .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.5rem; margin-bottom: 8px; color: var(--text-main); }
+        
+        .tech-specs { display: flex; gap: 12px; margin-top: 12px; }
+        .spec-pill {
+            font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--secondary);
+            background: rgba(125,125,125,0.1); padding: 4px 8px; border-radius: 2px;
+            border-left: 2px solid var(--secondary);
+        }
+
+        .card-actions {
+            padding: 20px 24px; background: rgba(0,0,0,0.1);
+            border-top: 1px solid var(--border-light);
+            display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px;
+        }
+
+        .btn-manual {
+            background: transparent; border: 1px solid var(--border-light);
+            color: var(--text-muted); height: 44px; border-radius: 4px;
+            font-family: 'JetBrains Mono'; font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;
+        }
+        .btn-manual:hover { border-color: var(--text-main); color: var(--text-main); background: rgba(255,255,255,0.05); }
+
+        .btn-ai {
+            background: var(--gradient-ai); border: none; color: white;
+            height: 44px; border-radius: 4px;
+            font-family: 'Rajdhani'; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .btn-ai:hover { box-shadow: 0 0 25px var(--glow-color); transform: scale(1.02); }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* LOADING */
+        #loading-screen {
+            position: fixed; inset: 0; background: var(--bg-deep); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .fade-in { animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body data-theme="cyber">
+
+    <div id="loading-screen">
+        <i class="fa-solid fa-circle-nodes fa-spin" style="font-size: 3rem; color: var(--secondary);"></i>
+        <div style="font-family:'JetBrains Mono'; margin-top:15px; color:var(--primary); font-size:0.8rem; letter-spacing:2px;">INITIALIZING NEURAL LINK...</div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+            <div class="brand-name">Neural<span style="color:var(--primary)">.AI</span></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-item active"><i class="fa-solid fa-microchip"></i> Experiments</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-solid fa-chart-line"></i> Performance</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-solid fa-database"></i> Data Lake</a></li>
+            <li><a href="#" class="nav-item"><i class="fa-solid fa-terminal"></i> API Console</a></li>
+        </ul>
+
+        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-light);">
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <div style="width:36px; height:36px; background:#333; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Rajdhani'; font-weight:700;" id="avatar">U</div>
+                <div style="flex:1;">
+                    <h4 style="font-size:0.9rem; font-family:'Rajdhani'; color:var(--text-main);" id="user-email-display">Guest User</h4>
+                    <div style="font-size:0.7rem; color:var(--primary); font-family:'JetBrains Mono';">● ONLINE</div>
+                </div>
+                <button onclick="handleLogout()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="page-header">
+                <h1>Experiment Dashboard</h1>
+                <p>> COURSE_ID: 21AIC202J // MACHINE_LEARNING</p>
+            </div>
+
+            <div class="header-controls">
+                <div class="search-container">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search modules via RegEx..." onkeyup="filterExperiments()">
+                </div>
+
+                <div class="theme-wrapper">
+                    <button class="theme-btn" onclick="toggleThemePanel()" title="Visual Cortex Settings">
+                        <i class="fa-solid fa-palette"></i>
+                    </button>
+                    
+                    <div class="theme-panel" id="themePanel">
+                        <div class="theme-panel-title">Visual Interface System</div>
+                        
+                        <div class="theme-option" onclick="setTheme('cyber')" id="opt-cyber">
+                            <div class="color-dot" style="background:#00f2ff; box-shadow:0 0 5px #00f2ff;"></div>
+                            <span class="theme-name">CYBER (Default)</span>
+                        </div>
+                        
+                        <div class="theme-option" onclick="setTheme('obsidian')" id="opt-obsidian">
+                            <div class="color-dot" style="background:#ff003c; box-shadow:0 0 5px #ff003c;"></div>
+                            <span class="theme-name">OBSIDIAN</span>
+                        </div>
+                        
+                        <div class="theme-option" onclick="setTheme('biolab')" id="opt-biolab">
+                            <div class="color-dot" style="background:#00ff9d; box-shadow:0 0 5px #00ff9d;"></div>
+                            <span class="theme-name">BIO-LAB</span>
+                        </div>
+                        
+                        <div class="theme-option" onclick="setTheme('nexus')" id="opt-nexus">
+                            <div class="color-dot" style="background:#2563eb; box-shadow:0 0 5px #2563eb;"></div>
+                            <span class="theme-name">NEXUS (Light)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="scroll-area">
+            <div class="grid-layout" id="cards-container"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNkQZetFlbIUjj_FkFsYvjOrq4BgpMKLw",
+            authDomain: "yashdiary.firebaseapp.com",
+            projectId: "yashdiary",
+            storageBucket: "yashdiary.firebasestorage.app",
+            messagingSenderId: "278671330274",
+            appId: "1:278671330274:web:6529cc25d2665baa7607bb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // --- AUTH ---
+        onAuthStateChanged(auth, (user) => {
+            const loader = document.getElementById('loading-screen');
+            if (user) {
+                const name = user.email.split('@')[0];
+                document.getElementById('user-email-display').innerText = name.toUpperCase();
+                document.getElementById('avatar').innerText = name.charAt(0).toUpperCase();
+                
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                    renderCards(experiments);
+                }, 800);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        window.handleLogout = () => signOut(auth).then(() => window.location.href = "index.html");
+
+        // --- THEME LOGIC ---
+        window.toggleThemePanel = () => {
+            const panel = document.getElementById('themePanel');
+            panel.classList.toggle('active');
+        };
+
+        window.setTheme = (themeName) => {
+            // Set Attribute
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('neuralTheme', themeName);
+            
+            // Visual Update in Panel
+            document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`opt-${themeName}`).classList.add('selected');
+            
+            // Close Panel
+            document.getElementById('themePanel').classList.remove('active');
+        };
+
+        // Init Theme
+        const savedTheme = localStorage.getItem('neuralTheme') || 'cyber';
+        window.setTheme(savedTheme);
+
+        // Click outside to close theme panel
+        document.addEventListener('click', (e) => {
+            const wrapper = document.querySelector('.theme-wrapper');
+            if (!wrapper.contains(e.target)) {
+                document.getElementById('themePanel').classList.remove('active');
+            }
+        });
+
+        // --- DATA ---
+        // ADDED: manualUrl and aiUrl for the Water Jug Problem (Experiment 01)
+        const experiments = [
+            { 
+                id: "01", 
+                title: "Water Jug Problem", 
+                type: "AI_SEARCH", 
+                complexity: "LOW", 
+                icon: "fa-glass-water",
+                manualUrl: "experiment1.html",
+                aiUrl: "experiment1_AI.html"
+            },
+            { id: "02", title: "FIND-S Algorithm", type: "CONCEPT_LEARNING", complexity: "MED", icon: "fa-magnifying-glass-chart" },
+            { id: "03", title: "Candidate Elimination", type: "CONCEPT_LEARNING", complexity: "MED", icon: "fa-filter" },
+            { id: "04", title: "Decision Tree (ID3)", type: "CLASSIFICATION", complexity: "HIGH", icon: "fa-network-wired" },
+            { id: "05", title: "Naïve Bayesian", type: "PROBABILISTIC", complexity: "MED", icon: "fa-dice" },
+            { id: "06", title: "Linear Regression", type: "REGRESSION", complexity: "LOW", icon: "fa-chart-line" },
+            { id: "07", title: "Logistic Regression", type: "CLASSIFICATION", complexity: "MED", icon: "fa-chart-area" },
+            { id: "08", title: "Single Perceptron", type: "NEURAL_NET", complexity: "MED", icon: "fa-circle-nodes" },
+            { id: "09", title: "Multi-Layer Perceptron", type: "DEEP_LEARNING", complexity: "EXTREME", icon: "fa-layer-group" },
+            { id: "10", title: "Backpropagation", type: "OPTIMIZATION", complexity: "HIGH", icon: "fa-rotate-left" },
+            { id: "11", title: "KNN Classifier", type: "CLUSTERING", complexity: "LOW", icon: "fa-people-group" },
+            { id: "12", title: "K-Means Clustering", type: "UNSUPERVISED", complexity: "MED", icon: "fa-shapes" },
+            { id: "13", title: "EM Algorithm", type: "STATISTICAL", complexity: "HIGH", icon: "fa-calculator" },
+            { id: "14", title: "SVM Classifier", type: "VECTOR_MACHINES", complexity: "HIGH", icon: "fa-vector-square" },
+            { id: "15", title: "PCA Extraction", type: "DIMENSIONALITY", complexity: "MED", icon: "fa-compress" }
+        ];
+
+        // --- RENDERER ---
+        function renderCards(data) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            data.forEach((item, idx) => {
+                const fakeHash = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+                
+                // --- MODIFIED: CHECK FOR URLS TO HANDLE NAVIGATION ---
+                const manualAction = item.manualUrl 
+                    ? `window.location.href='${item.manualUrl}'` 
+                    : `alert('Initializing manual environment for ${item.title}')`;
+
+                const aiAction = item.aiUrl 
+                    ? `window.location.href='${item.aiUrl}'` 
+                    : `alert('Deploying AI Agent for ${item.title}')`;
+                
+                const div = document.createElement('div');
+                div.className = 'card fade-in';
+                div.style.animationDelay = `${idx * 0.05}s`;
+                
+                div.innerHTML = `
+                    <div class="card-head">
+                        <div class="icon-box">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div style="text-align:right">
+                            <div class="meta-tag">${fakeHash}</div>
+                            <div style="font-family:'Rajdhani'; font-weight:700; font-size:1.2rem; color:var(--border-light); margin-top:5px; opacity:0.5">${item.id}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h3 class="card-title">${item.title}</h3>
+                        <div class="tech-specs">
+                            <span class="spec-pill">${item.type}</span>
+                            <span class="spec-pill" style="border-color:var(--primary); background:rgba(0,0,0,0.2); color:var(--primary)">${item.complexity}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <button class="btn-manual" onclick="${manualAction}">
+                            <i class="fa-solid fa-code"></i> SOLVE MANUALLY
+                        </button>
+                        <button class="btn-ai" onclick="${aiAction}">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> SOLVE BY AI
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.filterExperiments = () => {
+            const val = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = experiments.filter(e => e.title.toLowerCase().includes(val) || e.type.toLowerCase().includes(val));
+            renderCards(filtered);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exp 01 Data | SRM LabOS</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --bg-body: #0b0b15;
+            --bg-sidebar: #0f1016;
+            --bg-surface: #1a1b26;
+            --bg-surface-hover: #232433;
+            --border-color: rgba(255, 255, 255, 0.08);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            
+            --brand-color: #3b82f6;
+            --brand-glow: rgba(59, 130, 246, 0.2);
+            
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --radius: 12px;
+        }
+
+        /* Themes */
+        [data-theme="midnight"] { --bg-body: #000000; --bg-surface: #121212; --bg-sidebar: #050505; --brand-color: #6366f1; }
+        [data-theme="ocean"] { --bg-body: #0b1121; --bg-surface: #152037; --bg-sidebar: #080c19; --brand-color: #06b6d4; }
+        [data-theme="cyberpunk"] { --bg-body: #020205; --bg-surface: #0d0d14; --bg-sidebar: #050508; --border-color: #f43f5e; --brand-color: #00f0ff; }
+
+        /* --- GLOBAL STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background-color 0.3s, border-color 0.3s; }
+        body { background-color: var(--bg-body); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px; flex-shrink: 0; }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-color), #2563eb); border-radius: 12px; display: grid; place-items: center; font-weight: 800; color: white; }
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: 0.2s; }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-link.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .nav-section { font-size: 0.7rem; font-weight: 700; color: #585a6b; text-transform: uppercase; letter-spacing: 1px; margin-top: 24px; margin-bottom: 10px; padding-left: 12px; }
+
+        .sidebar-footer { margin-top: auto; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); }
+        .avatar { width: 36px; height: 36px; background: #292a35; border-radius: 50%; display: grid; place-items: center; color: var(--brand-color); }
+
+        /* --- MAIN CONTENT --- */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-header { height: 70px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: var(--bg-body); }
+        .breadcrumb { font-size: 0.9rem; color: var(--text-secondary); }
+        .breadcrumb span { color: white; font-weight: 600; }
+
+        .content-scroll { padding: 32px; overflow-y: auto; height: 100%; }
+
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .title-group h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+        .title-group p { color: var(--text-secondary); font-size: 0.95rem; }
+
+        /* Table Box */
+        .table-box { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        .table-toolbar { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        
+        .search-inp { background: var(--bg-body); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; color: white; width: 350px; outline: none; }
+        .search-inp:focus { border-color: var(--brand-color); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 18px 24px; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); }
+        td { padding: 18px 24px; border-bottom: 1px solid var(--border-color); color: white; font-size: 0.9rem; }
+        tr:hover { background: var(--bg-surface-hover); }
+
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; letter-spacing: 0.5px; }
+        .st-comp { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .st-term { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .btn { cursor: pointer; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--brand-color); color: white; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+        .btn-outline:hover { border-color: white; }
+        .btn-danger-icon { background: transparent; color: var(--text-secondary); padding: 8px; border-radius: 6px; }
+        .btn-danger-icon:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon">AI</div>
+            <div>
+                <div style="font-size:1.1rem; font-weight:700;">SRM LabOS</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">Instructor Portal</div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="admin.html" class="nav-link"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Students</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-file-code"></i> Submissions</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-triangle-exclamation"></i> Security Logs</a>
+            
+            <div class="nav-section">Lab Config</div>
+            <a href="submit.html" class="nav-link active"><i class="fa-solid fa-flask"></i> Experiments</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <div style="font-size:0.9rem; font-weight:600; color:white;">Dr. Sharma</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">Faculty Admin</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div class="breadcrumb">
+                Academics / 21AIC202J / Experiments / <span>Exp 01 Data</span>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <select onchange="document.documentElement.setAttribute('data-theme', this.value)" style="background:var(--bg-surface); color:white; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; outline:none">
+                    <option value="slate">Slate</option>
+                    <option value="midnight">Midnight</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                </select>
+                <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            
+            <div class="page-header">
+                <div class="title-group">
+                    <div style="color:var(--brand-color); font-family:'JetBrains Mono'; font-size:0.85rem; margin-bottom:6px;">EXP-01</div>
+                    <h1>Water Jug Problem</h1>
+                    <p>Student submission logs and proctoring data.</p>
+                </div>
+                <a href="submit.html" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="table-box">
+                <div class="table-toolbar">
+                    <div style="font-weight:600; font-size:1.1rem">Student Logs</div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="searchInput" class="search-inp" placeholder="Search by Reg No or Name..." onkeyup="filterTable()">
+                        <button class="btn btn-outline" onclick="loadData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                    </div>
+                </div>
+                <table id="logsTable">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Reg No</th>
+                            <th>Time Elapsed</th>
+                            <th>Tab Switches</th>
+                            <th>Screenshots</th>
+                            <th>Status</th>
+                            <th>Submitted At</th>
+                            <th style="text-align:right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let allLogs = [];
+
+        // --- 1. Load Data ---
+        async function loadData() {
+            try {
+                const logsRes = await fetch(`${API_BASE}/admin/logs`);
+                const logs = await logsRes.json();
+                
+                allLogs = logs;
+                renderTable(allLogs);
+
+            } catch (err) {
+                console.error("API Connection Failed", err);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#ef4444;">Error: Could not connect to database.</td></tr>`;
+            }
+        }
+
+        // --- 2. Render Table ---
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">No submissions found for this experiment.</td></tr>`;
+                return;
+            }
+
+            data.forEach(log => {
+                const tr = document.createElement('tr');
+                
+                const statusBadge = log.status === 'COMPLETED' 
+                    ? `<span class="status-badge st-comp">COMPLETED</span>` 
+                    : `<span class="status-badge st-term">TERMINATED</span>`;
+                
+                const switchStyle = log.tabSwitches > 0 ? 'color:#f59e0b; font-weight:700;' : 'color:#94a3b8;';
+                const screenStyle = log.screenShots > 0 ? 'color:#ef4444; font-weight:700;' : 'color:#94a3b8;';
+
+                const dateStr = new Date(log.submittedAt).toLocaleString();
+
+                tr.innerHTML = `
+                    <td style="font-weight:600; color:white;">${log.studentName}</td>
+                    <td style="font-family:'JetBrains Mono'; color:#94a3b8;">${log.regNo}</td>
+                    <td>${log.timeTaken}</td>
+                    <td style="${switchStyle}">${log.tabSwitches}</td>
+                    <td style="${screenStyle}">${log.screenShots}</td>
+                    <td>${statusBadge}</td>
+                    <td style="color:#94a3b8; font-size:0.85rem">${dateStr}</td>
+                    <td style="text-align:right">
+                        <button class="btn btn-danger-icon" onclick="deleteLog(${log.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 3. Filter Table ---
+        function filterTable() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allLogs.filter(l => 
+                l.studentName.toLowerCase().includes(term) || 
+                l.regNo.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        }
+
+        // --- 4. Delete Log ---
+        async function deleteLog(id) {
+            if(!confirm("Permanently delete this log?")) return;
+            try {
+                await fetch(`${API_BASE}/admin/logs/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        // --- 5. Export CSV ---
+        function exportCSV() {
+            let csv = "ID,Name,RegNo,Time,TabSwitches,Screenshots,Status,Date\n";
+            allLogs.forEach(l => {
+                csv += `${l.id},${l.studentName},${l.regNo},${l.timeTaken},${l.tabSwitches},${l.screenShots},${l.status},${l.submittedAt}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "Exp01_Report.csv"; a.click();
+        }
+
+        // Init
+        loadData();
+
+    </script>
+</body>
+</html>

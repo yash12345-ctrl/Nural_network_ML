@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="slate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiments | SRM LabOS</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --bg-body: #0b0b15;       /* Deep dark blue/black background */
+            --bg-sidebar: #0f1016;    /* Slightly lighter sidebar */
+            --bg-surface: #1a1b26;    /* Card background */
+            --border-color: rgba(255, 255, 255, 0.08);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            
+            --brand-color: #3b82f6;   /* Bright Blue */
+            --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            
+            --radius: 12px;
+        }
+
+        /* --- GLOBAL RESET --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR (Matched to Screenshot) --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            flex-shrink: 0;
+        }
+
+        .logo-area {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 30px;
+        }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 12px;
+            display: grid; place-items: center;
+            font-weight: 800; color: white; font-size: 1.1rem;
+        }
+        .logo-text { font-size: 1.1rem; font-weight: 700; }
+        .logo-sub { font-size: 0.75rem; color: var(--text-secondary); }
+
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+        /* Navigation Links */
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .nav-link i { width: 20px; text-align: center; font-size: 1rem; }
+        
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
+
+        /* Active State (The Blue Button Look) */
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* The Dashboard Button (Special Style from image) */
+        .nav-link.dashboard-btn {
+            background: #2e3048; /* Dark purplish/grey from image */
+            color: #8b8d9f;
+            justify-content: center;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+        .nav-link.dashboard-btn:hover {
+            border-color: var(--brand-color);
+            color: white;
+        }
+
+        /* Section Header */
+        .nav-section {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #585a6b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 24px;
+            margin-bottom: 10px;
+            padding-left: 12px;
+        }
+
+        /* Footer Profile */
+        .sidebar-footer {
+            margin-top: auto;
+            background: #15161c;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex; align-items: center; gap: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .avatar {
+            width: 36px; height: 36px;
+            background: #292a35;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            color: #6366f1;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-header {
+            height: 70px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 32px;
+            background: var(--bg-body);
+        }
+
+        .content-scroll { padding: 40px; overflow-y: auto; }
+
+        /* --- EXPERIMENT GRID --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .exp-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            height: 160px;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .exp-card:hover {
+            border-color: var(--brand-color);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .exp-id {
+            font-family: 'JetBrains Mono';
+            font-size: 0.75rem;
+            color: var(--brand-color);
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .exp-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1.5;
+        }
+
+        .exp-arrow {
+            align-self: flex-end;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: grid; place-items: center;
+            color: var(--text-secondary);
+            transition: 0.2s;
+        }
+        
+        .exp-card:hover .exp-arrow {
+            background: var(--brand-color);
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon">AI</div>
+            <div>
+                <div class="logo-text">SRM LabOS</div>
+                <div class="logo-sub">Instructor Portal</div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="admin.html" class="nav-link dashboard-btn">
+                Dashboard
+            </a>
+
+            <a href="#" class="nav-link">
+                <i class="fa-solid fa-users"></i> Students
+            </a>
+            
+            <a href="#" class="nav-link">
+                <i class="fa-solid fa-file-code"></i> Submissions
+            </a>
+            
+            <a href="#" class="nav-link">
+                <i class="fa-solid fa-triangle-exclamation"></i> Security Logs
+            </a>
+
+            <div class="nav-section">Lab Config</div>
+
+            <a href="#" class="nav-link active">
+                <i class="fa-solid fa-flask"></i> Experiments
+            </a>
+            
+            <a href="#" class="nav-link">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <div style="font-size:0.9rem; font-weight:600; color:white;">Dr. Sharma</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">Faculty Admin</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                Academics / 21AIC202J / <span style="color:white; font-weight:600">All Experiments</span>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <button style="background:var(--bg-surface); border:1px solid var(--border-color); color:white; padding:8px 12px; border-radius:8px; cursor:pointer;">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 10px;">Select Experiment</h1>
+            <p style="color:var(--text-secondary); margin-bottom: 40px;">Choose an experiment below to view live monitoring and submissions.</p>
+
+            <div class="grid-container" id="experimentsGrid">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. DATA: List of Experiments (From your PDF)
+        const experiments = [
+            { id: 1, title: "Water jug problem" },
+            { id: 2, title: "FIND-S algorithm" },
+            { id: 3, title: "Candidate Elimination" },
+            { id: 4, title: "Decision tree based ID3 algorithm" },
+            { id: 5, title: "Naïve Bayesian classifier" },
+            { id: 6, title: "Linear Regression" },
+            { id: 7, title: "Logic Regression" },
+            { id: 8, title: "Single Layer perceptron" },
+            { id: 9, title: "Multi-Layer Perceptron" },
+            { id: 10, title: "Backpropagation" },
+            { id: 11, title: "KNN classifier" },
+            { id: 12, title: "Clustering using k-Means" },
+            { id: 13, title: "EM for clustering" },
+            { id: 14, title: "Training SVM classifier" },
+            { id: 15, title: "Feature Extraction by PCA" }
+        ];
+
+        // 2. RENDER GRID
+        function renderGrid() {
+            const grid = document.getElementById('experimentsGrid');
+            grid.innerHTML = '';
+
+            experiments.forEach(exp => {
+                const card = document.createElement('div');
+                card.className = 'exp-card';
+                
+                // CLICK ACTION: Navigate to admin.html
+                card.onclick = () => {
+                    // We can pass the experiment ID via URL parameter if needed later
+                    window.location.href = 'ex1.html';
+                };
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="exp-id">EXP-${String(exp.id).padStart(2, '0')}</div>
+                        <div class="exp-title">${exp.title}</div>
+                    </div>
+                    <div class="exp-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Initialize
+        renderGrid();
+
+    </script>
+</body>
+</html>

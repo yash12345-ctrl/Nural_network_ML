@@ -1,0 +1,21 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model StudentLog {
+  id              Int      @id @default(autoincrement())
+  studentName     String
+  regNo           String
+  timeTaken       String   // Format: "MM:SS"
+  tabSwitches     Int      @default(0)
+  screenShots     Int      @default(0)
+  status          String   // "COMPLETED" or "TERMINATED"
+  submittedAt     DateTime @default(now())
+}

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Command Center | SRM LabOS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* Palette: Deep Space */
+            --bg-app: #030712; /* Nearly black blue */
+            --bg-panel: rgba(17, 24, 39, 0.7);
+            --bg-card: rgba(31, 41, 55, 0.4);
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-highlight: rgba(255, 255, 255, 0.1);
+
+            --primary: #6366f1; /* Indigo 500 */
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --text-dim: #6b7280;
+
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            /* Ambient Background Glow */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 25%);
+        }
+
+        /* --- SIDEBAR (Minimalist) --- */
+        aside {
+            width: 80px; /* Collapsed style for cleaner look */
+            height: 100vh;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+            transition: width 0.3s ease;
+        }
+
+        aside:hover { width: 240px; align-items: flex-start; padding-left: 24px; }
+        
+        .logo { 
+            width: 40px; height: 40px; 
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            border-radius: 12px;
+            display: grid; place-items: center;
+            font-weight: 800; font-size: 1.2rem;
+            margin-bottom: 40px;
+            box-shadow: 0 0 20px var(--primary-glow);
+            flex-shrink: 0;
+        }
+        aside:hover .logo { margin-left: 8px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 14px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            width: 48px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        aside:hover .nav-item { width: 90%; }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        .nav-item.active { border: 1px solid var(--border-highlight); background: rgba(99, 102, 241, 0.1); }
+        .nav-item i { font-size: 1.1rem; min-width: 20px; text-align: center; }
+        
+        /* --- MAIN AREA --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .breadcrumbs { font-size: 0.9rem; color: var(--text-muted); }
+        .breadcrumbs span { color: white; font-weight: 500; }
+        .lab-status {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pulse-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; box-shadow: 0 0 8px currentColor; animation: pulse 2s infinite; }
+
+        /* Dashboard Grid */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: auto auto 1fr;
+            gap: 24px;
+        }
+
+        /* Section Title */
+        .hero-section {
+            grid-column: span 12;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+        h1 { font-size: 2rem; font-weight: 700; letter-spacing: -1px; margin-bottom: 4px; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+
+        /* KPI Cards (Glass) */
+        .kpi-card {
+            grid-column: span 3;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 140px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); border-color: var(--border-highlight); }
+        
+        .kpi-header { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-value { font-size: 2.5rem; font-weight: 700; color: white; margin-top: 8px; letter-spacing: -1px; }
+        .kpi-footer { font-size: 0.8rem; margin-top: auto; display: flex; gap: 6px; align-items: center; }
+
+        /* Main Table Area */
+        .table-panel {
+            grid-column: span 8;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 600px; /* Fixed height for scroll */
+        }
+
+        .panel-toolbar {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-bar {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: white;
+            width: 300px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
+        /* Table Styling */
+        .custom-table { width: 100%; border-collapse: collapse; }
+        .custom-table th {
+            text-align: left;
+            padding: 16px 24px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(0,0,0,0.2);
+            position: sticky; top: 0;
+            backdrop-filter: blur(10px);
+        }
+        .custom-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .custom-table tr:hover td { background: rgba(255,255,255,0.02); color: white; }
+        
+        .student-cell { display: flex; align-items: center; gap: 12px; color: white; font-weight: 500; }
+        .avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(to right, #4f46e5, #ec4899); display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; color: white; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .badge-active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+        /* Side Panel (Charts) */
+        .analytics-panel {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chart-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            height: 300px;
+        }
+        
+        .diagram-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px;
+            height: 276px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .diagram-container {
+            flex: 1;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            color: var(--text-muted);
+            border: 1px dashed var(--border-subtle);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .btn-action:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
+
+        .btn-icon { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; cursor: pointer; }
+        .btn-icon:hover { color: white; border-color: var(--text-muted); }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-card { grid-column: span 6; }
+            .table-panel { grid-column: span 12; }
+            .analytics-panel { grid-column: span 12; flex-direction: row; }
+            .chart-box, .diagram-preview { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="logo">L</div>
+        <a href="#" class="nav-item active"><i class="fa-solid fa-layer-group"></i> <span>Dashboard</span></a>
+        <a href="#" class="nav-item"><i class="fa-solid fa-users"></i> <span>Students</span></a>
+        <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i> <span>Analytics</span></a>
+        <a href="#" class="nav-item"><i class="fa-solid fa-shield-halved"></i> <span>Security</span></a>
+        <div style="flex:1"></div>
+        <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
+        <a href="#" class="nav-item"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span></a>
+    </aside>
+
+    <main>
+        <header>
+            <div class="breadcrumbs">
+                Academics / 21AIC202J / <span>Live Monitoring</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="lab-status">
+                    <div class="pulse-dot"></div> Live Session
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.85rem; font-weight: 600;">Dr. Sharma</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Admin</div>
+                    </div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);">DS</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            
+            <div class="hero-section">
+                <div>
+                    <h1>Lab: ID3 Decision Tree Algo</h1>
+                    <div class="subtitle"><i class="fa-regular fa-clock"></i> Started at 09:00 AM • 120 Mins Duration</div>
+                </div>
+                <button class="btn-action" onclick="loadData()"><i class="fa-solid fa-rotate-right"></i> Refresh Data</button>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-header">Active Students <i class="fa-solid fa-signal"></i></div>
+                <div class="kpi-value" id="stat-total">--</div>
+                <div class="kpi-footer" style="color: var(--success);">
+                    <i class="fa-solid fa-arrow-trend-up"></i> 98% Attendance
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">Submissions <i class="fa-solid fa-file-code"></i></div>
+                <div class="kpi-value" id="stat-completed">--</div>
+                <div class="kpi-footer" style="color: var(--primary);">
+                    <i class="fa-solid fa-bolt"></i> On Track
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">Violations <i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="kpi-value" id="stat-violations" style="color: var(--warning);">--</div>
+                <div class="kpi-footer" style="color: var(--text-muted);">
+                    Flagged Events
+                </div>
+            </div>
+            <div class="kpi-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="kpi-header">Terminated <i class="fa-solid fa-ban"></i></div>
+                <div class="kpi-value" id="stat-terminated" style="color: var(--danger);">--</div>
+                <div class="kpi-footer" style="color: var(--danger);">
+                    Severe Malpractice
+                </div>
+            </div>
+
+            <div class="table-panel">
+                <div class="panel-toolbar">
+                    <h3 style="font-size: 1rem;">Live Logs</h3>
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" id="searchInput" class="search-bar" placeholder="Search logs..." onkeyup="filterTable()">
+                        <button class="btn-icon" onclick="exportCSV()"><i class="fa-solid fa-download"></i></button>
+                    </div>
+                </div>
+                <div style="overflow-y: auto; flex: 1;">
+                    <table class="custom-table" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Reg No</th>
+                                <th>Time</th>
+                                <th>Switches</th>
+                                <th>Screens</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="analytics-panel">
+                
+                <div class="chart-box">
+                    <h3 style="font-size: 0.9rem; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase;">Activity Pulse</h3>
+                    <div style="height: 220px;">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="diagram-preview">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">Lab Reference</h3>
+                        <span style="font-size:0.7rem; color: var(--primary);">Config v2.4</span>
+                    </div>
+                    
+                    <div class="diagram-container">
+                        
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let allLogs = [];
+        let timelineChart = null;
+
+        // Init Chart with dummy data first for visual check
+        function initChart(labels = [], data = []) {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            if (timelineChart) timelineChart.destroy();
+
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+            timelineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['09:00', '09:15', '09:30', '09:45'],
+                    datasets: [{
+                        label: 'Violations',
+                        data: data.length ? data : [2, 5, 1, 3],
+                        borderColor: '#6366f1',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#6b7280' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7280' } }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+        }
+
+        // --- DATA LOGIC ---
+        async function loadData() {
+            const btn = document.querySelector('.fa-rotate-right');
+            if(btn) btn.classList.add('fa-spin');
+
+            try {
+                const [statsRes, logsRes] = await Promise.all([
+                    fetch(`${API_BASE}/admin/stats`),
+                    fetch(`${API_BASE}/admin/logs`)
+                ]);
+
+                if (!statsRes.ok || !logsRes.ok) throw new Error('API Error');
+
+                const stats = await statsRes.json();
+                const logs = await logsRes.json();
+
+                allLogs = logs; 
+                updateUI(stats, logs);
+
+            } catch (error) {
+                console.error("Connection Error:", error);
+                // For demo purposes if API fails, maintain UI state
+            } finally {
+                if(btn) btn.classList.remove('fa-spin');
+            }
+        }
+
+        function updateUI(stats, logs) {
+            // Stats
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-completed').innerText = stats.completed;
+            document.getElementById('stat-terminated').innerText = stats.terminated;
+            document.getElementById('stat-violations').innerText = stats.totalViolations;
+
+            renderTable(logs);
+            
+            // Chart Data Prep
+            const recent = logs.slice(0, 10).reverse();
+            const labels = recent.map(l => l.submittedAt.substring(11, 16));
+            const data = recent.map(l => l.tabSwitches + l.screenShots);
+            initChart(labels, data);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted);">Waiting for data stream...</td></tr>`;
+                return;
+            }
+
+            data.forEach(log => {
+                const tr = document.createElement('tr');
+                
+                // Initials for avatar
+                const initials = log.studentName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                
+                let statusBadge = '';
+                if(log.status === 'COMPLETED') statusBadge = `<span class="status-badge badge-success">Completed</span>`;
+                else if(log.status === 'TERMINATED') statusBadge = `<span class="status-badge badge-danger">Terminated</span>`;
+                else statusBadge = `<span class="status-badge badge-active">Active</span>`;
+
+                const warnColor = (log.tabSwitches > 0 || log.screenShots > 0) ? '#f59e0b' : '#6b7280';
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="student-cell">
+                            <div class="avatar-circle">${initials}</div>
+                            <div>${log.studentName}</div>
+                        </div>
+                    </td>
+                    <td style="font-family:var(--font-mono); color: var(--text-muted);">${log.regNo}</td>
+                    <td>${log.timeTaken}</td>
+                    <td style="color:${log.tabSwitches > 0 ? '#f59e0b' : 'inherit'}; font-weight:${log.tabSwitches > 0 ? '700' : '400'}">${log.tabSwitches}</td>
+                    <td style="color:${log.screenShots > 0 ? '#ef4444' : 'inherit'}; font-weight:${log.screenShots > 0 ? '700' : '400'}">${log.screenShots}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button class="btn-icon" onclick="deleteLog(${log.id})" style="border:none; color: #ef4444;"><i class="fa-regular fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteLog(id) {
+            if(!confirm('Confirm deletion?')) return;
+            try {
+                await fetch(`${API_BASE}/admin/logs/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch (e) { console.error(e); }
+        }
+
+        function filterTable() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allLogs.filter(l => l.studentName.toLowerCase().includes(term) || l.regNo.toLowerCase().includes(term));
+            renderTable(filtered);
+        }
+
+        function exportCSV() {
+            let csv = "ID,Name,RegNo,Time,Switches,Screenshots,Status\n";
+            allLogs.forEach(l => {
+                csv += `${l.id},${l.studentName},${l.regNo},${l.timeTaken},${l.tabSwitches},${l.screenShots},${l.status}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Lab_Logs.csv'; a.click();
+        }
+
+        // Initialize
+        initChart();
+        loadData();
+        setInterval(loadData, 5000);
+
+    </script>
+</body>
+</html>
