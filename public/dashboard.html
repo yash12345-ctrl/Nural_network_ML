@@ -108,7 +108,7 @@
             display: flex; flex-direction: column;
             padding: 24px;
             z-index: 50;
-            transition: all 0.5s ease;
+            transition: transform 0.3s ease; /* For mobile slide */
         }
 
         .brand {
@@ -156,10 +156,11 @@
             background: var(--primary); box-shadow: 0 0 10px var(--primary);
         }
 
-        /* --- 5. TOP BAR & THEME SWITCHER --- */
+        /* --- 5. MAIN CONTENT --- */
         .main-content {
             flex: 1; display: flex; flex-direction: column;
             position: relative; overflow: hidden;
+            width: 100%; /* Ensure width for flex */
         }
 
         .top-bar {
@@ -170,6 +171,14 @@
             border-bottom: 1px solid var(--border-light);
             z-index: 40;
             transition: all 0.5s ease;
+        }
+
+        /* Hamburger Menu (Hidden on Desktop) */
+        .mobile-toggle {
+            display: none;
+            background: transparent; border: none;
+            color: var(--text-main); font-size: 1.5rem;
+            cursor: pointer; margin-right: 15px;
         }
 
         .page-header h1 {
@@ -247,7 +256,8 @@
 
         /* --- 6. CARDS & GRID --- */
         .scroll-area { flex: 1; overflow-y: auto; padding: 30px 40px 60px 40px; }
-        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 30px; }
+        /* Responsive Grid: Adjust minmax for better mobile fit */
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
 
         .card {
             background: var(--card-bg);
@@ -325,6 +335,67 @@
         .fade-in { animation: fadeInUp 0.5s ease forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
+        /* Overlay for Mobile Sidebar */
+        .sidebar-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            z-index: 45; display: none; backdrop-filter: blur(5px);
+        }
+
+        /* --- 7. RESPONSIVE MEDIA QUERIES --- */
+        
+        @media (max-width: 900px) {
+            /* Sidebar becomes off-canvas */
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+                z-index: 1000;
+            }
+            .sidebar.active {
+                left: 0; /* Slide in */
+                transform: translateX(0);
+            }
+            .sidebar-overlay.active { display: block; }
+
+            /* Top Bar Adjustments */
+            .top-bar {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            .mobile-toggle { display: block; }
+
+            /* Header Controls - Stack or Adjust */
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+                flex-direction: row-reverse; /* Put theme switcher near thumb */
+            }
+            .search-container { width: 100%; }
+            .search-input { width: 100%; }
+
+            .page-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex: 1;
+            }
+            .page-header h1 { font-size: 1.4rem; }
+            .page-header p { display: none; /* Hide course ID on small screens to save space */ }
+
+            /* Grid Adjustments */
+            .scroll-area { padding: 20px; }
+            .grid-layout { grid-template-columns: 1fr; /* Single column on mobile */ }
+            
+            /* Disable Hover Lifts on Touch */
+            .card:hover { transform: none; box-shadow: none; }
+            
+            /* Theme Panel Position */
+            .theme-panel { right: auto; left: 0; width: 100%; }
+        }
     </style>
 </head>
 <body data-theme="cyber">
@@ -334,7 +405,9 @@
         <div style="font-family:'JetBrains Mono'; margin-top:15px; color:var(--primary); font-size:0.8rem; letter-spacing:2px;">INITIALIZING NEURAL LINK...</div>
     </div>
 
-    <aside class="sidebar">
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
         <div class="brand">
             <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
             <div class="brand-name">Neural<span style="color:var(--primary)">.AI</span></div>
@@ -361,15 +434,20 @@
 
     <main class="main-content">
         <header class="top-bar">
-            <div class="page-header">
-                <h1>Experiment Dashboard</h1>
-                <p>> COURSE_ID: 21AIC202J // MACHINE_LEARNING</p>
+            <div style="display:flex; align-items:center; flex:1;">
+                <button class="mobile-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="page-header">
+                    <h1>Experiment Dashboard</h1>
+                    <p>> COURSE_ID: 21AIC202J // MACHINE_LEARNING</p>
+                </div>
             </div>
 
             <div class="header-controls">
                 <div class="search-container">
                     <i class="fa-solid fa-search search-icon"></i>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Search modules via RegEx..." onkeyup="filterExperiments()">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search..." onkeyup="filterExperiments()">
                 </div>
 
                 <div class="theme-wrapper">
@@ -445,6 +523,14 @@
 
         window.handleLogout = () => signOut(auth).then(() => window.location.href = "index.html");
 
+        // --- MOBILE SIDEBAR LOGIC (NEW) ---
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        };
+
         // --- THEME LOGIC ---
         window.toggleThemePanel = () => {
             const panel = document.getElementById('themePanel');
@@ -452,15 +538,10 @@
         };
 
         window.setTheme = (themeName) => {
-            // Set Attribute
             document.body.setAttribute('data-theme', themeName);
             localStorage.setItem('neuralTheme', themeName);
-            
-            // Visual Update in Panel
             document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
             document.getElementById(`opt-${themeName}`).classList.add('selected');
-            
-            // Close Panel
             document.getElementById('themePanel').classList.remove('active');
         };
 
@@ -477,7 +558,6 @@
         });
 
         // --- DATA ---
-        // ADDED: manualUrl and aiUrl for the Water Jug Problem (Experiment 01)
         const experiments = [
             { 
                 id: "01", 
@@ -512,7 +592,6 @@
             data.forEach((item, idx) => {
                 const fakeHash = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
                 
-                // --- MODIFIED: CHECK FOR URLS TO HANDLE NAVIGATION ---
                 const manualAction = item.manualUrl 
                     ? `window.location.href='${item.manualUrl}'` 
                     : `alert('Initializing manual environment for ${item.title}')`;

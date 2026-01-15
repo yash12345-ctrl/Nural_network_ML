@@ -436,7 +436,9 @@
     </main>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
+        // --- FIXED: Use relative path so it works on localhost AND render ---
+        const API_BASE = '/api'; 
+        
         let allLogs = [];
         let timelineChart = null;
 
