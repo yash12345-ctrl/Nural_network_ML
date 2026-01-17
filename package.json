@@ -8,14 +8,22 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@prisma/client": "^5.10.0",
+    "@prisma/client": "^5.22.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "prisma": "^5.10.0"
-  }
+    "prisma": "^5.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yash12345-ctrl/Nural_network_ML.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yash12345-ctrl/Nural_network_ML/issues"
+  },
+  "homepage": "https://github.com/yash12345-ctrl/Nural_network_ML#readme",
+  "description": ""
 }

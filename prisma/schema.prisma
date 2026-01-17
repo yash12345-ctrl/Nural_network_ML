@@ -9,13 +9,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model StudentLog {
-  id              Int      @id @default(autoincrement())
-  studentName     String
-  regNo           String
-  timeTaken       String   // Format: "MM:SS"
-  tabSwitches     Int      @default(0)
-  screenShots     Int      @default(0)
-  status          String   // "COMPLETED" or "TERMINATED"
-  submittedAt     DateTime @default(now())
+// Table 1: Stores unique students (Login Data)
+model Student {
+  id        Int      @id @default(autoincrement())
+  regNo     String   @unique // Ensures one record per student reg number
+  name      String
+  email     String?
+  lastLogin DateTime @default(now())
+}
+
+// Table 2: Stores experiment results (Lab Data)
+model ExperimentLog {
+  id          Int      @id @default(autoincrement())
+  studentName String
+  regNo       String   // We use this to link back to the student if needed
+  experiment  String   // e.g., "Exp 01: Water Jug"
+  timeTaken   String   
+  tabSwitches Int      @default(0)
+  screenShots Int      @default(0)
+  status      String   // "COMPLETED" or "TERMINATED"
+  submittedAt DateTime @default(now())
 }

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory | Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4F46E5;       /* Indigo */
+            --primary-hover: #4338ca;
+            --bg-body: #F3F4F6;       /* Light Gray */
+            --bg-card: #ffffff;
+            --text-main: #111827;     /* Dark Gray */
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: #1F2937; /* Dark Slate */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand i { color: var(--primary); }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #9CA3AF;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #374151;
+            color: white;
+        }
+
+        .nav-link.active {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            background: var(--bg-card);
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .page-title h2 { font-size: 1.25rem; color: var(--text-main); }
+        .page-title p { font-size: 0.875rem; color: var(--text-muted); }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content-scroll {
+            padding: 2rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        /* Card Container */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Toolbar (Search & Filters) */
+        .toolbar {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 10px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .refresh-btn {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .refresh-btn:hover { background: #F9FAFB; border-color: #D1D5DB; }
+
+        /* Table Styling */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #F9FAFB;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #F9FAFB; }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .student-name { font-weight: 500; color: var(--text-main); }
+        .student-email { font-size: 0.8rem; color: var(--text-muted); }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-lab { background: #EEF2FF; color: var(--primary); }
+        
+        /* Loading & Error States */
+        .loading, .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; padding: 1rem 0.5rem; }
+            .brand span, .nav-link span { display: none; }
+            .nav-link { justify-content: center; }
+            .search-box { width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-flask"></i>
+            <span>LabAdmin</span>
+        </div>
+        <a href="admin.html" class="nav-link">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="students.html" class="nav-link active">
+            <i class="fa-solid fa-users"></i>
+            <span>Students</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>Experiment Logs</span>
+        </a>
+        <a href="#" class="nav-link" style="margin-top: auto;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <header>
+            <div class="page-title">
+                <h2>Student Directory</h2>
+                <p>Manage and view all registered students</p>
+            </div>
+            <div class="user-profile">
+                <span>Admin</span>
+                <div class="avatar">A</div>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by name or reg no...">
+                    </div>
+                    <button class="refresh-btn" onclick="fetchStudents()">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Student Details</th>
+                                <th>Register No</th>
+                                <th>Total Labs</th>
+                                <th>Last Active</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            </tbody>
+                    </table>
+                    
+                    <div id="loadingState" class="loading">
+                        <i class="fa-solid fa-circle-notch spinner"></i>
+                        <p>Loading student data...</p>
+                    </div>
+
+                    <div id="noDataState" class="no-data" style="display: none;">
+                        <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>No students found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let allStudents = [];
+        
+        // --- 1. CONFIGURATION ---
+        // Defines the backend URL. Since your node server is on 3000, we must point here.
+        const API_BASE_URL = 'http://localhost:3000';
+
+        // --- 2. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', fetchStudents);
+
+        // --- 3. FETCH DATA ---
+        async function fetchStudents() {
+            const tableBody = document.getElementById('tableBody');
+            const loadingState = document.getElementById('loadingState');
+            const noDataState = document.getElementById('noDataState');
+
+            // Reset UI
+            tableBody.innerHTML = '';
+            loadingState.style.display = 'block';
+            noDataState.style.display = 'none';
+
+            try {
+                // FIXED: Using API_BASE_URL to prevent 404 errors on Port 5500
+                const response = await fetch(`${API_BASE_URL}/api/admin/students`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned status: ${response.status}`);
+                }
+                
+                allStudents = await response.json();
+                renderTable(allStudents);
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                
+                // Show a helpful error message to the user
+                loadingState.innerHTML = `
+                    <div style="color:var(--danger); display:flex; flex-direction:column; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem;"></i>
+                        <div>
+                            <p><strong>Connection Failed</strong></p>
+                            <p style="font-size:0.9rem; color:var(--text-muted)">Ensure your backend server is running on port 3000.</p>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // --- 4. RENDER TABLE ---
+        function renderTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            const loadingState = document.getElementById('loadingState');
+            const noDataState = document.getElementById('noDataState');
+
+            loadingState.style.display = 'none';
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                noDataState.style.display = 'block';
+                return;
+            }
+
+            noDataState.style.display = 'none';
+
+            data.forEach(student => {
+                const tr = document.createElement('tr');
+                
+                // Safe Date Formatting
+                let dateStr = "Never";
+                let isOnline = false;
+
+                if (student.lastActive) {
+                    const dateObj = new Date(student.lastActive);
+                    dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    // Check if online (active within last 24 hours)
+                    const oneDay = 24 * 60 * 60 * 1000;
+                    isOnline = (new Date() - dateObj) < oneDay;
+                }
+
+                const statusBadge = isOnline 
+                    ? `<span style="color: var(--success); font-weight:600; font-size: 0.8rem;">● Online Recently</span>` 
+                    : `<span style="color: var(--text-muted); font-size: 0.8rem;">● Offline</span>`;
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="student-info">
+                            <span class="student-name">${student.name || 'Unknown'}</span>
+                            <span class="student-email">${student.email || 'No Email'}</span>
+                        </div>
+                    </td>
+                    <td style="font-family: monospace; font-size: 0.95rem;">${student.regNo || 'N/A'}</td>
+                    <td><span class="badge badge-lab">${student.totalLabs || 0} Labs</span></td>
+                    <td style="color: var(--text-muted);">${dateStr}</td>
+                    <td>${statusBadge}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // --- 5. SEARCH LOGIC ---
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allStudents.filter(s => 
+                (s.name && s.name.toLowerCase().includes(term)) || 
+                (s.regNo && s.regNo.toLowerCase().includes(term))
+            );
+            renderTable(filtered);
+        });
+    </script>
+</body>
+</html>
